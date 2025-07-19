@@ -12,60 +12,33 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v4
 
-      - name: Install jq
-        run: sudo apt-get update && sudo apt-get install -y unzip jq 
-
-      - name: Install Vault CLI
+      - name: Install Vault & Tools
         run: |
+          sudo apt-get update && sudo apt-get install -y unzip jq curl gnupg
           curl -fsSL https://apt.releases.hashicorp.com/gpg | sudo gpg --dearmor -o /usr/share/keyrings/hashicorp-archive-keyring.gpg
           echo "deb [signed-by=/usr/share/keyrings/hashicorp-archive-keyring.gpg] https://apt.releases.hashicorp.com $(lsb_release -cs) main" | sudo tee /etc/apt/sources.list.d/hashicorp.list
           sudo apt update && sudo apt install vault -y
 
-      - name: Login to Vault
+      - name: Login to Vault and Export Secrets
+        env:
+          VAULT_ADDR: ${{ secrets.VAULT_ADDR }}
+          VAULT_USERNAME: ${{ secrets.VAULT_USERNAME }}
+          VAULT_PASSWORD: ${{ secrets.VAULT_PASSWORD }}
         run: |
-          export VAULT_ADDR=${{ secrets.VAULT_ADDR }}
-          vault login -method=userpass \
-            username=${{ secrets.VAULT_USERNAME }} \
-            password=${{ secrets.VAULT_PASSWORD }}
-
-      - name: Read Secrets from Vault
-        run: |
-          export VAULT_ADDR=${{ secrets.VAULT_ADDR }}
-          export TOKEN=$(vault login -method=userpass \
-            username=${{ secrets.VAULT_USERNAME }} \
-            password=${{ secrets.VAULT_PASSWORD }} \
+          TOKEN=$(vault login -method=userpass \
+            username="$VAULT_USERNAME" \
+            password="$VAULT_PASSWORD" \
             -format=json | jq -r '.auth.client_token')
 
-          SECRET_JSON=$(vault kv get -format=json -token=$TOKEN secret/myapp/config)
-          echo $SECRET_JSON | jq -r '.data.data | to_entries[] | "\(.key)=\(.value)"' >> $GITHUB_ENV
+          export VAULT_TOKEN="$TOKEN"
 
-      - name: Use Secrets
-        run: |
-          echo "DATABASE USER: $DB_USER"
-          echo "DATABASE PASSWORD: $DB_PASSWORD"
+          for key in FORGEJO_DB_NAME FORGEJO_DB_USER FORGEJO_DB_PASSWORD FORGEJO_DB_HOST FORGEJO_DB_PORT \
+                     FORGEJO_HTTP_PORT FORGEJO_SSH_PORT SMTP_HOST SMTP_PORT SMTP_USER SMTP_PASSWORD \
+                     SMTP_FROM SMTP_TLS USER_UID USER_GID DB_TYPE MAILER_ENABLED; do
+            value=$(vault kv get -field=$key secret/FORGEJO)
+            echo "$key=$value" >> $GITHUB_ENV
+          done
 
-
-      - name: 🔢 Logging into Vault & set variables
-        run: |
-            vault login -method=userpass username=${{ env.VAULT_USERNAME  }} password=${{ env.VAULT_PASSWORD }}
-            vault kv get secret/FORGEJO | grep -w FORGEJO_DB_NAME | awk '{print $1"="$2}'  >> $GITHUB_ENV
-            vault kv get secret/FORGEJO | grep -w FORGEJO_DB_USER | awk '{print $1"="$2}'  >> $GITHUB_ENV
-            vault kv get secret/FORGEJO | grep -w FORGEJO_DB_PASSWORD | awk '{print $1"="$2}'  >> $GITHUB_ENV
-            vault kv get secret/FORGEJO | grep -w FORGEJO_DB_HOST | awk '{print $1"="$2}'  >> $GITHUB_ENV
-            vault kv get secret/FORGEJO | grep -w FORGEJO_DB_PORT | awk '{print $1"="$2}'  >> $GITHUB_ENV
-            vault kv get secret/FORGEJO | grep -w FORGEJO_HTTP_PORT | awk '{print $1"="$2}'  >> $GITHUB_ENV
-            vault kv get secret/FORGEJO | grep -w FORGEJO_SSH_PORT | awk '{print $1"="$2}'  >> $GITHUB_ENV
-            vault kv get secret/FORGEJO | grep -w SMTP_HOST | awk '{print $1"="$2}'  >> $GITHUB_ENV
-            vault kv get secret/FORGEJO | grep -w SMTP_PORT | awk '{print $1"="$2}'  >> $GITHUB_ENV
-            vault kv get secret/FORGEJO | grep -w SMTP_USER | awk '{print $1"="$2}'  >> $GITHUB_ENV
-            vault kv get secret/FORGEJO | grep -w SMTP_PASSWORD | awk '{print $1"="$2}'  >> $GITHUB_ENV
-            vault kv get secret/FORGEJO | grep -w SMTP_FROM | awk '{print $1"="$2}'  >> $GITHUB_ENV
-            vault kv get secret/FORGEJO | grep -w SMTP_TLS | awk '{print $1"="$2}'  >> $GITHUB_ENV
-            vault kv get secret/FORGEJO | grep -w USER_UID | awk '{print $1"="$2}'  >> $GITHUB_ENV
-            vault kv get secret/FORGEJO | grep -w USER_GID | awk '{print $1"="$2}'  >> $GITHUB_ENV
-            vault kv get secret/FORGEJO | grep -w DB_TYPE | awk '{print $1"="$2}'  >> $GITHUB_ENV
-            vault kv get secret/FORGEJO | grep -w MAILER_ENABLED | awk '{print $1"="$2}'  >> $GITHUB_ENV
-            
       - name: Build Forgejo Image
         run: |
           docker build -t forgejo-secure:latest \
@@ -81,36 +54,12 @@ jobs:
             --build-arg SMTP_USER=$SMTP_USER \
             --build-arg SMTP_PASSWORD=$SMTP_PASSWORD \
             --build-arg SMTP_FROM=$SMTP_FROM \
-            --build-arg SMTP_TLS=$SMTP_TLS \ 
+            --build-arg SMTP_TLS=$SMTP_TLS \
             --build-arg USER_UID=$USER_UID \
             --build-arg USER_GID=$USER_GID \
             --build-arg DB_TYPE=$DB_TYPE \
-            --build-arg MAILER_ENABLED=MAILER_ENABLED \
-
+            --build-arg MAILER_ENABLED=$MAILER_ENABLED \
             ./dbeaver
-      #        # 🔧 Step 6: Configure AWS Credentials
-      # - name: 🔐 Configure AWS Credentials
-      #   uses: aws-actions/configure-aws-credentials@v2
-      #   with:
-      #     aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-      #     aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-      #     aws-region: ${{ secrets.AWS_REGION }}
-
-      # # 🔑 Step 7: Login to Amazon ECR
-      # - name: 🔑 Login to Amazon ECR
-      #   id: login-ecr
-      #   uses: aws-actions/amazon-ecr-login@v1
-
-      # # 📤 Step 8: Tag and Push Docker Image to ECR
-      # - name: 📦 Push Docker Image to AWS ECR
-      #   env:
-      #     ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-      #     ECR_REPOSITORY: ${{ secrets.ECR_REPOSITORY }}
-      #     IMAGE_TAG: ${{ env.COMMIT_SHA_SHORT }}
-      #   run: |
-      #     docker tag forgejo-secure:latest $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
-      #     docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
-
 
       - name: Deploy with Docker Compose
         run: |
