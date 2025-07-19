@@ -28,7 +28,7 @@ jobs:
             username=${{ secrets.VAULT_USERNAME }} \
             password=${{ secrets.VAULT_PASSWORD }}
 
-      - name: Read Secrets from Vault
+      - name: Read Secrets from Vault proper
         run: |
           export VAULT_ADDR=${{ secrets.VAULT_ADDR }}
           export TOKEN=$(vault login -method=userpass \
