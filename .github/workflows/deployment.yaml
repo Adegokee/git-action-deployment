@@ -2,7 +2,7 @@ name: CI Vault Login Example
 
 on:
   push:
-    branches: [tunde]
+    branches: [main]
 
 jobs:
   vault-login:
