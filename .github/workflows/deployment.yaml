@@ -13,7 +13,6 @@ jobs:
       - name: Install dependencies
         run: |
           sudo apt-get update && sudo apt-get install -y jq unzip curl gnupg
-          # Install Vault CLI
           curl -fsSL https://apt.releases.hashicorp.com/gpg | sudo gpg --dearmor -o /usr/share/keyrings/hashicorp-archive-keyring.gpg
           echo "deb [signed-by=/usr/share/keyrings/hashicorp-archive-keyring.gpg] https://apt.releases.hashicorp.com $(lsb_release -cs) main" | sudo tee /etc/apt/sources.list.d/hashicorp.list
           sudo apt update && sudo apt install vault -y
@@ -24,10 +23,11 @@ jobs:
           VAULT_USERNAME: ${{ secrets.VAULT_USERNAME }}
           VAULT_PASSWORD: ${{ secrets.VAULT_PASSWORD }}
         run: |
+          export VAULT_ADDR="$VAULT_ADDR"
           TOKEN=$(vault login -method=userpass \
             username="$VAULT_USERNAME" \
             password="$VAULT_PASSWORD" \
-            -format=json | jq -r '.auth.client_token')
+            -format=json | jq -r '.auth.client_token') || exit 1
           export VAULT_TOKEN="$TOKEN"
           for key in FORGEJO_DB_NAME FORGEJO_DB_USER FORGEJO_DB_PASSWORD FORGEJO_DB_HOST FORGEJO_DB_PORT \
                      FORGEJO_HTTP_PORT FORGEJO_SSH_PORT SMTP_HOST SMTP_PORT SMTP_USER SMTP_PASSWORD \
@@ -56,6 +56,12 @@ jobs:
             --build-arg DB_TYPE=$DB_TYPE \
             --build-arg MAILER_ENABLED=$MAILER_ENABLED \
             ./dbeaver
+
+      - name: Install Docker Compose
+        run: |
+          sudo curl -L "https://github.com/docker/compose/releases/download/v2.24.5/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+          sudo chmod +x /usr/local/bin/docker-compose
+          docker-compose --version
 
       - name: Deploy with Docker Compose
         run: |
