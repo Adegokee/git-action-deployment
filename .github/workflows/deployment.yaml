@@ -55,7 +55,7 @@ jobs:
             --build-arg USER_GID=$USER_GID \
             --build-arg DB_TYPE=$DB_TYPE \
             --build-arg MAILER_ENABLED=$MAILER_ENABLED \
-            ./test
+            ./git-action-deployment
 
       - name: Install Docker Compose
         run: |
