@@ -1,4 +1,4 @@
-name: CI Vault Login Example
+name: CI Vault Login
 
 on:
   push:
