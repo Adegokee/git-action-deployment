@@ -48,23 +48,23 @@ jobs:
       - name: 🔢 Logging into Vault & set variables
         run: |
             vault login -method=userpass username=${{ env.VAULT_USERNAME  }} password=${{ env.VAULT_PASSWORD }}
-            vault kv get Dev-secret/forgejo_smtp | grep -w FORGEJO_DB_NAME | awk '{print $1"="$2}'  >> $GITHUB_ENV
-            vault kv get Dev-secret/forgejo_smtp | grep -w FORGEJO_DB_USER | awk '{print $1"="$2}'  >> $GITHUB_ENV
-            vault kv get Dev-secret/forgejo_smtp | grep -w FORGEJO_DB_PASSWORD | awk '{print $1"="$2}'  >> $GITHUB_ENV
-            vault kv get Dev-secret/forgejo_smtp | grep -w FORGEJO_DB_HOST | awk '{print $1"="$2}'  >> $GITHUB_ENV
-            vault kv get Dev-secret/forgejo_smtp | grep -w FORGEJO_DB_PORT | awk '{print $1"="$2}'  >> $GITHUB_ENV
-            vault kv get Dev-secret/forgejo_smtp | grep -w FORGEJO_HTTP_PORT | awk '{print $1"="$2}'  >> $GITHUB_ENV
-            vault kv get Dev-secret/forgejo_smtp | grep -w FORGEJO_SSH_PORT | awk '{print $1"="$2}'  >> $GITHUB_ENV
-            vault kv get Dev-secret/forgejo_smtp | grep -w SMTP_HOST | awk '{print $1"="$2}'  >> $GITHUB_ENV
-            vault kv get Dev-secret/forgejo_smtp | grep -w SMTP_PORT | awk '{print $1"="$2}'  >> $GITHUB_ENV
-            vault kv get Dev-secret/forgejo_smtp | grep -w SMTP_USER | awk '{print $1"="$2}'  >> $GITHUB_ENV
-            vault kv get Dev-secret/forgejo_smtp | grep -w SMTP_PASSWORD | awk '{print $1"="$2}'  >> $GITHUB_ENV
-            vault kv get Dev-secret/forgejo_smtp | grep -w SMTP_FROM | awk '{print $1"="$2}'  >> $GITHUB_ENV
-            vault kv get Dev-secret/forgejo_smtp | grep -w SMTP_TLS | awk '{print $1"="$2}'  >> $GITHUB_ENV
-            vault kv get Dev-secret/forgejo_smtp | grep -w USER_UID | awk '{print $1"="$2}'  >> $GITHUB_ENV
-            vault kv get Dev-secret/forgejo_smtp | grep -w USER_GID | awk '{print $1"="$2}'  >> $GITHUB_ENV
-            vault kv get Dev-secret/forgejo_smtp | grep -w DB_TYPE | awk '{print $1"="$2}'  >> $GITHUB_ENV
-            vault kv get Dev-secret/forgejo_smtp | grep -w MAILER_ENABLED | awk '{print $1"="$2}'  >> $GITHUB_ENV
+            vault kv get secret/FORGEJO | grep -w FORGEJO_DB_NAME | awk '{print $1"="$2}'  >> $GITHUB_ENV
+            vault kv get secret/FORGEJO | grep -w FORGEJO_DB_USER | awk '{print $1"="$2}'  >> $GITHUB_ENV
+            vault kv get secret/FORGEJO | grep -w FORGEJO_DB_PASSWORD | awk '{print $1"="$2}'  >> $GITHUB_ENV
+            vault kv get secret/FORGEJO | grep -w FORGEJO_DB_HOST | awk '{print $1"="$2}'  >> $GITHUB_ENV
+            vault kv get secret/FORGEJO | grep -w FORGEJO_DB_PORT | awk '{print $1"="$2}'  >> $GITHUB_ENV
+            vault kv get secret/FORGEJO | grep -w FORGEJO_HTTP_PORT | awk '{print $1"="$2}'  >> $GITHUB_ENV
+            vault kv get secret/FORGEJO | grep -w FORGEJO_SSH_PORT | awk '{print $1"="$2}'  >> $GITHUB_ENV
+            vault kv get secret/FORGEJO | grep -w SMTP_HOST | awk '{print $1"="$2}'  >> $GITHUB_ENV
+            vault kv get secret/FORGEJO | grep -w SMTP_PORT | awk '{print $1"="$2}'  >> $GITHUB_ENV
+            vault kv get secret/FORGEJO | grep -w SMTP_USER | awk '{print $1"="$2}'  >> $GITHUB_ENV
+            vault kv get secret/FORGEJO | grep -w SMTP_PASSWORD | awk '{print $1"="$2}'  >> $GITHUB_ENV
+            vault kv get secret/FORGEJO | grep -w SMTP_FROM | awk '{print $1"="$2}'  >> $GITHUB_ENV
+            vault kv get secret/FORGEJO | grep -w SMTP_TLS | awk '{print $1"="$2}'  >> $GITHUB_ENV
+            vault kv get secret/FORGEJO | grep -w USER_UID | awk '{print $1"="$2}'  >> $GITHUB_ENV
+            vault kv get secret/FORGEJO | grep -w USER_GID | awk '{print $1"="$2}'  >> $GITHUB_ENV
+            vault kv get secret/FORGEJO | grep -w DB_TYPE | awk '{print $1"="$2}'  >> $GITHUB_ENV
+            vault kv get secret/FORGEJO | grep -w MAILER_ENABLED | awk '{print $1"="$2}'  >> $GITHUB_ENV
             
       - name: Build Forgejo Image
         run: |
