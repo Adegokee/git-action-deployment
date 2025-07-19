@@ -66,7 +66,7 @@ jobs:
             vault kv get Dev-secret/forgejo_smtp | grep -w DB_TYPE | awk '{print $1"="$2}'  >> $GITHUB_ENV
             vault kv get Dev-secret/forgejo_smtp | grep -w MAILER_ENABLED | awk '{print $1"="$2}'  >> $GITHUB_ENV
             
-      - name: Build Forgejo Image-forcicd
+      - name: Build Forgejo Image
         run: |
           docker build -t forgejo-secure:latest \
             --build-arg FORGEJO_DB_NAME=$FORGEJO_DB_NAME \
@@ -88,28 +88,28 @@ jobs:
             --build-arg MAILER_ENABLED=MAILER_ENABLED \
 
             ./dbeaver
-             # 🔧 Step 6: Configure AWS Credentials
-      - name: 🔐 Configure AWS Credentials
-        uses: aws-actions/configure-aws-credentials@v2
-        with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: ${{ secrets.AWS_REGION }}
+      #        # 🔧 Step 6: Configure AWS Credentials
+      # - name: 🔐 Configure AWS Credentials
+      #   uses: aws-actions/configure-aws-credentials@v2
+      #   with:
+      #     aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+      #     aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+      #     aws-region: ${{ secrets.AWS_REGION }}
 
-      # 🔑 Step 7: Login to Amazon ECR
-      - name: 🔑 Login to Amazon ECR
-        id: login-ecr
-        uses: aws-actions/amazon-ecr-login@v1
+      # # 🔑 Step 7: Login to Amazon ECR
+      # - name: 🔑 Login to Amazon ECR
+      #   id: login-ecr
+      #   uses: aws-actions/amazon-ecr-login@v1
 
-      # 📤 Step 8: Tag and Push Docker Image to ECR
-      - name: 📦 Push Docker Image to AWS ECR
-        env:
-          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-          ECR_REPOSITORY: ${{ secrets.ECR_REPOSITORY }}
-          IMAGE_TAG: ${{ env.COMMIT_SHA_SHORT }}
-        run: |
-          docker tag forgejo-secure:latest $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
-          docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+      # # 📤 Step 8: Tag and Push Docker Image to ECR
+      # - name: 📦 Push Docker Image to AWS ECR
+      #   env:
+      #     ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+      #     ECR_REPOSITORY: ${{ secrets.ECR_REPOSITORY }}
+      #     IMAGE_TAG: ${{ env.COMMIT_SHA_SHORT }}
+      #   run: |
+      #     docker tag forgejo-secure:latest $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+      #     docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
 
 
       - name: Deploy with Docker Compose
