@@ -15,7 +15,7 @@ jobs:
       - name: Install jq
         run: sudo apt-get update && sudo apt-get install -y unzip jq 
 
-      - name: Install Vault CLI proper
+      - name: Install Vault CLI
         run: |
           curl -fsSL https://apt.releases.hashicorp.com/gpg | sudo gpg --dearmor -o /usr/share/keyrings/hashicorp-archive-keyring.gpg
           echo "deb [signed-by=/usr/share/keyrings/hashicorp-archive-keyring.gpg] https://apt.releases.hashicorp.com $(lsb_release -cs) main" | sudo tee /etc/apt/sources.list.d/hashicorp.list
@@ -28,7 +28,7 @@ jobs:
             username=${{ secrets.VAULT_USERNAME }} \
             password=${{ secrets.VAULT_PASSWORD }}
 
-      - name: Read Secrets from Vault proper
+      - name: Read Secrets from Vault
         run: |
           export VAULT_ADDR=${{ secrets.VAULT_ADDR }}
           export TOKEN=$(vault login -method=userpass \
