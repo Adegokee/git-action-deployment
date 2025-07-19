@@ -37,7 +37,7 @@ jobs:
 
       - name: Build Forgejo Image
         run: |
-          docker build -t forgejo-secure:latest \
+          docker buildx build -t forgejo-secure:latest \
             --build-arg FORGEJO_DB_NAME=$FORGEJO_DB_NAME \
             --build-arg FORGEJO_DB_USER=$FORGEJO_DB_USER \
             --build-arg FORGEJO_DB_PASSWORD=$FORGEJO_DB_PASSWORD \
