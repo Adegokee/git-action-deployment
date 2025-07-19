@@ -60,7 +60,7 @@ jobs:
             vault kv get Dev-secret/forgejo_smtp | grep -w DB_TYPE | awk '{print $1"="$2}'  >> $GITHUB_ENV
             vault kv get Dev-secret/forgejo_smtp | grep -w MAILER_ENABLED | awk '{print $1"="$2}'  >> $GITHUB_ENV
             
-      - name: Build Forgejo Image
+      - name: Build Forgejo Image-forcicd
         run: |
           docker build -t forgejo-secure:latest \
             --build-arg FORGEJO_DB_NAME=$FORGEJO_DB_NAME \
