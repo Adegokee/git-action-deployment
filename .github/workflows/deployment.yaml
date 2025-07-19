@@ -40,25 +40,26 @@ jobs:
 
       - name: Build Forgejo Image
         run: |
-          - run: docker buildx build --push -t adegokebabatunde/forgejo-secure:latest .\
-          --build-arg FORGEJO_DB_NAME=$FORGEJO_DB_NAME \
-          --build-arg FORGEJO_DB_USER=$FORGEJO_DB_USER \
-          --build-arg FORGEJO_DB_PASSWORD=$FORGEJO_DB_PASSWORD \
-          --build-arg FORGEJO_DB_HOST=$FORGEJO_DB_HOST \
-          --build-arg FORGEJO_DB_PORT=$FORGEJO_DB_PORT \
-          --build-arg FORGEJO_HTTP_PORT=$FORGEJO_HTTP_PORT \
-          --build-arg FORGEJO_SSH_PORT=$FORGEJO_SSH_PORT \
-          --build-arg SMTP_HOST=$SMTP_HOST \
-          --build-arg SMTP_PORT=$SMTP_PORT \
-          --build-arg SMTP_USER=$SMTP_USER \
-          --build-arg SMTP_PASSWORD=$SMTP_PASSWORD \
-          --build-arg SMTP_FROM=$SMTP_FROM \
-          --build-arg SMTP_TLS=$SMTP_TLS \
-          --build-arg USER_UID=$USER_UID \
-          --build-arg USER_GID=$USER_GID \
-          --build-arg DB_TYPE=$DB_TYPE \
-          --build-arg MAILER_ENABLED=$MAILER_ENABLED \
-          .
+          docker buildx build --push -t adegokebabatunde/forgejo-secure:latest \
+            --build-arg FORGEJO_DB_NAME=$FORGEJO_DB_NAME \
+            --build-arg FORGEJO_DB_USER=$FORGEJO_DB_USER \
+            --build-arg FORGEJO_DB_PASSWORD=$FORGEJO_DB_PASSWORD \
+            --build-arg FORGEJO_DB_HOST=$FORGEJO_DB_HOST \
+            --build-arg FORGEJO_DB_PORT=$FORGEJO_DB_PORT \
+            --build-arg FORGEJO_HTTP_PORT=$FORGEJO_HTTP_PORT \
+            --build-arg FORGEJO_SSH_PORT=$FORGEJO_SSH_PORT \
+            --build-arg SMTP_HOST=$SMTP_HOST \
+            --build-arg SMTP_PORT=$SMTP_PORT \
+            --build-arg SMTP_USER=$SMTP_USER \
+            --build-arg SMTP_PASSWORD=$SMTP_PASSWORD \
+            --build-arg SMTP_FROM=$SMTP_FROM \
+            --build-arg SMTP_TLS=$SMTP_TLS \
+            --build-arg USER_UID=$USER_UID \
+            --build-arg USER_GID=$USER_GID \
+            --build-arg DB_TYPE=$DB_TYPE \
+            --build-arg MAILER_ENABLED=$MAILER_ENABLED \
+            .
+
   
       - name: Deploy with Docker Compose
         run: |
