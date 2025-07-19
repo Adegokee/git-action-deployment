@@ -1,30 +1,43 @@
-name: CI/CD Automation
+name: CI Vault Login Example
 
 on:
   push:
-    branches:
-      - "**"
+    branches: [tunde]
 
 jobs:
-  automation:
-    runs-on: ["linux", "ubuntu", "docker", "shell", "backend"]
+  vault-login:
+    runs-on: ubuntu-latest
 
     steps:
-      - name: 🛠 Checkout Repository
+      - name: Checkout Code
         uses: actions/checkout@v4
 
-      - name: 🔢 Get Last 4 Digits of Commit SHA
-        run: |
-          echo "COMMIT_SHA_SHORT=$(git rev-parse --short=4 HEAD)" >> $GITHUB_ENV
+      - name: Install jq
+        run: sudo apt-get install jq -y
 
-      - name: 🔢 Setting up Vault
+      - name: Login to Vault
         run: |
-          echo "COMMIT_SHA_SHORT=$(git rev-parse --short=4 HEAD)" >> $GITHUB_ENV         
-          echo VAULT_USERNAME=${{ vars.VAULT_USERNAME  }} >> $GITHUB_ENV
-          echo VAULT_PASSWORD=${{ vars.VAULT_PASSWORD }} >> $GITHUB_ENV
-          echo VAULT_ADDR=${{ vars.VAULT_ADDR }} >> $GITHUB_ENV
-          echo "VAULT_TOKEN=$(vault login -method=userpass username="$VAULT_USERNAME" \
-              password="$VAULT_PASSWORD" -format=json | jq -r '.auth.client_token')" >> $GITHUB_ENV
+          export VAULT_ADDR=${{ secrets.VAULT_ADDR }}
+          vault login -method=userpass \
+            username=${{ secrets.VAULT_USERNAME }} \
+            password=${{ secrets.VAULT_PASSWORD }}
+
+      - name: Read Secrets from Vault
+        run: |
+          export VAULT_ADDR=${{ secrets.VAULT_ADDR }}
+          export TOKEN=$(vault login -method=userpass \
+            username=${{ secrets.VAULT_USERNAME }} \
+            password=${{ secrets.VAULT_PASSWORD }} \
+            -format=json | jq -r '.auth.client_token')
+
+          SECRET_JSON=$(vault kv get -format=json -token=$TOKEN secret/myapp/config)
+          echo $SECRET_JSON | jq -r '.data.data | to_entries[] | "\(.key)=\(.value)"' >> $GITHUB_ENV
+
+      - name: Use Secrets
+        run: |
+          echo "DATABASE USER: $DB_USER"
+          echo "DATABASE PASSWORD: $DB_PASSWORD"
+
 
       - name: 🔢 Logging into Vault & set variables
         run: |
