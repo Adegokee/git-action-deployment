@@ -1,25 +1,24 @@
-name: CI Vault Login
+name: CI Vault Login + Docker Build
 
 on:
   push:
     branches: [main]
 
 jobs:
-  vault-login:
+  build:
     runs-on: ubuntu-latest
-
     steps:
-      - name: Checkout Code
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-      - name: Install Vault & Tools login
+      - name: Install dependencies
         run: |
-          sudo apt-get update && sudo apt-get install -y unzip jq curl gnupg
+          sudo apt-get update && sudo apt-get install -y jq unzip curl gnupg
+          # Install Vault CLI
           curl -fsSL https://apt.releases.hashicorp.com/gpg | sudo gpg --dearmor -o /usr/share/keyrings/hashicorp-archive-keyring.gpg
           echo "deb [signed-by=/usr/share/keyrings/hashicorp-archive-keyring.gpg] https://apt.releases.hashicorp.com $(lsb_release -cs) main" | sudo tee /etc/apt/sources.list.d/hashicorp.list
           sudo apt update && sudo apt install vault -y
 
-      - name: Login to Vault and Export Secrets Proper
+      - name: Login to Vault & Export Secrets
         env:
           VAULT_ADDR: ${{ secrets.VAULT_ADDR }}
           VAULT_USERNAME: ${{ secrets.VAULT_USERNAME }}
@@ -29,14 +28,11 @@ jobs:
             username="$VAULT_USERNAME" \
             password="$VAULT_PASSWORD" \
             -format=json | jq -r '.auth.client_token')
-
           export VAULT_TOKEN="$TOKEN"
-
           for key in FORGEJO_DB_NAME FORGEJO_DB_USER FORGEJO_DB_PASSWORD FORGEJO_DB_HOST FORGEJO_DB_PORT \
                      FORGEJO_HTTP_PORT FORGEJO_SSH_PORT SMTP_HOST SMTP_PORT SMTP_USER SMTP_PASSWORD \
                      SMTP_FROM SMTP_TLS USER_UID USER_GID DB_TYPE MAILER_ENABLED; do
-            value=$(vault kv get -field=$key secret/FORGEJO)
-            echo "$key=$value" >> $GITHUB_ENV
+            echo "$key=$(vault kv get -field=$key secret/FORGEJO)" >> $GITHUB_ENV
           done
 
       - name: Build Forgejo Image
